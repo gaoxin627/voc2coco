@@ -59,25 +59,28 @@ def get_image_info(annotation_root, extract_num_from_imgid=True):
 
 def get_coco_annotation_from_obj(obj, label2id):
     label = obj.findtext('name')
-    assert label in label2id, f"Error: {label} is not in label2id !"
-    category_id = label2id[label]
-    bndbox = obj.find('bndbox')
-    xmin = int(float(bndbox.findtext('xmin'))) - 1
-    ymin = int(float(bndbox.findtext('ymin'))) - 1
-    xmax = int(float(bndbox.findtext('xmax')))
-    ymax = int(float(bndbox.findtext('ymax')))
-    assert xmax > xmin and ymax > ymin, f"Box size error !: (xmin, ymin, xmax, ymax): {xmin, ymin, xmax, ymax}"
-    o_width = xmax - xmin
-    o_height = ymax - ymin
-    ann = {
-        'area': o_width * o_height,
-        'iscrowd': 0,
-        'bbox': [xmin, ymin, o_width, o_height],
-        'category_id': category_id,
-        'ignore': 0,
-        'segmentation': []  # This script is not for segmentation
-    }
-    return ann
+    # assert label in label2id, f"Error: {label} is not in label2id !"
+    if label in label2id:
+        category_id = label2id[label]
+        bndbox = obj.find('bndbox')
+        xmin = int(float(bndbox.findtext('xmin'))) - 1
+        ymin = int(float(bndbox.findtext('ymin'))) - 1
+        xmax = int(float(bndbox.findtext('xmax')))
+        ymax = int(float(bndbox.findtext('ymax')))
+        assert xmax > xmin and ymax > ymin, f"Box size error !: (xmin, ymin, xmax, ymax): {xmin, ymin, xmax, ymax}"
+        o_width = xmax - xmin
+        o_height = ymax - ymin
+        ann = {
+            'area': o_width * o_height,
+            'iscrowd': 0,
+            'bbox': [xmin, ymin, o_width, o_height],
+            'category_id': category_id,
+            'ignore': 0,
+            'segmentation': []  # This script is not for segmentation
+        }
+        return ann
+    else:
+        return None
 
 
 def convert_xmls_to_cocojson(annotation_paths: List[str],
@@ -104,14 +107,18 @@ def convert_xmls_to_cocojson(annotation_paths: List[str],
 
         for obj in ann_root.findall('object'):
             ann = get_coco_annotation_from_obj(obj=obj, label2id=label2id)
-            ann.update({'image_id': img_id, 'id': bnd_id})
-            output_json_dict['annotations'].append(ann)
-            bnd_id = bnd_id + 1
+            if ann is not None:
+                ann.update({'image_id': img_id, 'id': bnd_id})
+                output_json_dict['annotations'].append(ann)
+                bnd_id = bnd_id + 1
 
     for label, label_id in label2id.items():
         category_info = {'supercategory': 'none', 'id': label_id, 'name': label}
         output_json_dict['categories'].append(category_info)
 
+    json_path = os.path.dirname(output_jsonpath)
+    if not os.path.exists(json_path):
+        os.makedirs(json_path)
     with open(output_jsonpath, 'w') as f:
         output_json = json.dumps(output_json_dict)
         f.write(output_json)
