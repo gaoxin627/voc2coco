@@ -38,7 +38,11 @@ def change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_
             out_img_name = str(i + start_num) + '.jpg'
             src_file = os.path.join(img_path, file_name + '.jpg')
             dst_file = os.path.join(out_img_path, out_img_name)
-            shutil.copy(src_file, dst_file)
+            if os.path.exists(src_file):
+                shutil.copy(src_file, dst_file)
+            else:
+                src_file = os.path.join(img_path, file_name + '.JPG')
+                shutil.copy(src_file, dst_file)
 
             xml_file = os.path.join(xml_path, file_name + '.xml')
             xml_out_file = os.path.join(out_xml_path, str(i + start_num) + '.xml')
@@ -103,19 +107,19 @@ def change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_
 
 
 if __name__ == '__main__':
-    img_path = '/home/gaoxin/data/train_val/xmbhyc/images'
-    xml_path = '/home/gaoxin/data/train_val/xmbhyc/xml'
-    txt_file = '/home/gaoxin/data/train_val/xmbhyc/val_voc.txt'
+    img_path = '/home/gaoxin/data/train_val/jyz_pl/images'
+    xml_path = '/home/gaoxin/data/train_val/jyz_pl/xml'
+    txt_file = '/home/gaoxin/data/train_val/jyz_pl/val_voc.txt'
     start_num = 0
-    out_img_path = '/home/gaoxin/data/train_val/xmbhyc/coco/val2017'
-    out_xml_path = '/home/gaoxin/data/train_val/xmbhyc/coco/xml'
-    out_txt_file = '/home/gaoxin/data/train_val/xmbhyc/coco/val_voc.txt'
+    out_img_path = '/home/gaoxin/data/train_val/jyz_pl/coco/val2017'
+    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl/coco/xml'
+    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl/coco/val_voc.txt'
     start_num = change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_path, out_txt_file)
 
-    img_path = '/home/gaoxin/data/train_val/xmbhyc/images'
-    xml_path = '/home/gaoxin/data/train_val/xmbhyc/xml'
-    txt_file = '/home/gaoxin/data/train_val/xmbhyc/train_voc.txt'
-    out_img_path = '/home/gaoxin/data/train_val/xmbhyc/coco/train2017'
-    out_xml_path = '/home/gaoxin/data/train_val/xmbhyc/coco/xml'
-    out_txt_file = '/home/gaoxin/data/train_val/xmbhyc/coco/train_voc.txt'
+    img_path = '/home/gaoxin/data/train_val/jyz_pl/images'
+    xml_path = '/home/gaoxin/data/train_val/jyz_pl/xml'
+    txt_file = '/home/gaoxin/data/train_val/jyz_pl/train_voc.txt'
+    out_img_path = '/home/gaoxin/data/train_val/jyz_pl/coco/train2017'
+    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl/coco/xml'
+    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl/coco/train_voc.txt'
     change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_path, out_txt_file)
