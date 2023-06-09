@@ -36,90 +36,89 @@ def change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_
         for i in range(len(img_file_list)):
             file_name = img_file_list[i]
             out_img_name = str(i + start_num) + '.jpg'
-            src_file = os.path.join(img_path, file_name + '.jpg')
+            src_file = os.path.join(img_path, file_name)
             dst_file = os.path.join(out_img_path, out_img_name)
             if os.path.exists(src_file):
                 shutil.copy(src_file, dst_file)
-            else:
-                src_file = os.path.join(img_path, file_name + '.JPG')
-                shutil.copy(src_file, dst_file)
+                idx = file_name.rfind('.')
+                file_prefix = file_name[:idx]
+                xml_file = os.path.join(xml_path, file_prefix + '.xml')
+                xml_out_file = os.path.join(out_xml_path, str(i + start_num) + '.xml')
+                if os.path.exists(xml_file):
+                    tree = ET.parse(xml_file)
+                    root = tree.getroot()
+                    root.find('filename').text = out_img_name
+                    if root.find('path') is not None:
+                        root.find('path').text = out_img_name
+                    tree.write(xml_out_file, encoding="utf-8")  # , xml_declaration=True)
+                else:
+                    root = ET.Element('annotation')  # 创建节点
+                    tree = ET.ElementTree(root)  # 创建文档
 
-            xml_file = os.path.join(xml_path, file_name + '.xml')
-            xml_out_file = os.path.join(out_xml_path, str(i + start_num) + '.xml')
-            if os.path.exists(xml_file):
-                tree = ET.parse(xml_file)
-                root = tree.getroot()
-                root.find('filename').text = out_img_name
-                root.find('path').text = out_img_name
-                tree.write(xml_out_file, encoding="utf-8")  # , xml_declaration=True)
-            else:
-                root = ET.Element('annotation')  # 创建节点
-                tree = ET.ElementTree(root)  # 创建文档
+                    # 图片文件上一级目录
+                    folder = ET.Element("folder")
+                    folder.text = ''
+                    root.append(folder)
 
-                # 图片文件上一级目录
-                folder = ET.Element("folder")
-                folder.text = ''
-                root.append(folder)
+                    # 文件名
+                    filename = ET.Element('filename')
+                    filename.text = out_img_name
+                    root.append(filename)
 
-                # 文件名
-                filename = ET.Element('filename')
-                filename.text = out_img_name
-                root.append(filename)
+                    # 路径
+                    path = ET.Element("path")
+                    path.text = out_img_name
+                    root.append(path)
 
-                # 路径
-                path = ET.Element("path")
-                path.text = out_img_name
-                root.append(path)
+                    # source
+                    source = ET.Element("source")
+                    root.append(source)
+                    database = ET.Element("database")
+                    database.text = "Unknown"
+                    source.append(database)
 
-                # source
-                source = ET.Element("source")
-                root.append(source)
-                database = ET.Element("database")
-                database.text = "Unknown"
-                source.append(database)
+                    # size
+                    img = cv2.imread(dst_file)
+                    h, w, c = img.shape
+                    size = ET.Element("size")
+                    root.append(size)
+                    width = ET.Element("width")  # 宽
+                    width.text = str(w)
+                    size.append(width)
+                    height = ET.Element("height")  # 高
+                    height.text = str(h)
+                    size.append(height)
+                    depth = ET.Element("depth")  # 深度
+                    depth.text = str(c)
+                    size.append(depth)
 
-                # size
-                img = cv2.imread(dst_file)
-                h, w, c = img.shape
-                size = ET.Element("size")
-                root.append(size)
-                width = ET.Element("width")  # 宽
-                width.text = str(w)
-                size.append(width)
-                height = ET.Element("height")  # 高
-                height.text = str(h)
-                size.append(height)
-                depth = ET.Element("depth")  # 深度
-                depth.text = str(c)
-                size.append(depth)
+                    # segmented
+                    segmented = ET.Element("segmented")
+                    segmented.text = str(0)
+                    root.append(segmented)
 
-                # segmented
-                segmented = ET.Element("segmented")
-                segmented.text = str(0)
-                root.append(segmented)
+                    indent(root, 0)
+                    tree.write(xml_out_file, encoding="utf-8")  # , xml_declaration=True)
 
-                indent(root, 0)
-                tree.write(xml_out_file, encoding="utf-8")  # , xml_declaration=True)
-
-            f.write(str(i + start_num) + '\n')
+                f.write(str(i + start_num) + '\n')
 
     return len(img_file_list)
 
 
 if __name__ == '__main__':
-    img_path = '/home/gaoxin/data/train_val/jyz_pl/images'
-    xml_path = '/home/gaoxin/data/train_val/jyz_pl/xml'
-    txt_file = '/home/gaoxin/data/train_val/jyz_pl/val_voc.txt'
+    img_path = '/home/gaoxin/data/train_val/jyz_pl_v2/images'
+    xml_path = '/home/gaoxin/data/train_val/jyz_pl_v2/xml'
+    txt_file = '/home/gaoxin/data/train_val/jyz_pl_v2/val_yolo.txt'
     start_num = 0
-    out_img_path = '/home/gaoxin/data/train_val/jyz_pl/coco/val2017'
-    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl/coco/xml'
-    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl/coco/val_voc.txt'
+    out_img_path = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/val2017'
+    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/xml'
+    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/val_voc.txt'
     start_num = change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_path, out_txt_file)
 
-    img_path = '/home/gaoxin/data/train_val/jyz_pl/images'
-    xml_path = '/home/gaoxin/data/train_val/jyz_pl/xml'
-    txt_file = '/home/gaoxin/data/train_val/jyz_pl/train_voc.txt'
-    out_img_path = '/home/gaoxin/data/train_val/jyz_pl/coco/train2017'
-    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl/coco/xml'
-    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl/coco/train_voc.txt'
+    img_path = '/home/gaoxin/data/train_val/jyz_pl_v2/images'
+    xml_path = '/home/gaoxin/data/train_val/jyz_pl_v2/xml'
+    txt_file = '/home/gaoxin/data/train_val/jyz_pl_v2/train_yolo.txt'
+    out_img_path = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/train2017'
+    out_xml_path = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/xml'
+    out_txt_file = '/home/gaoxin/data/train_val/jyz_pl_v2/coco/train_voc.txt'
     change_files(img_path, xml_path, txt_file, start_num, out_img_path, out_xml_path, out_txt_file)

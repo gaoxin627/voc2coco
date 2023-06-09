@@ -8,11 +8,19 @@ import re
 
 
 def get_label2id(labels_path: str) -> Dict[str, int]:
-    """id is 1 start"""
-    with open(labels_path, 'r') as f:
-        labels_str = f.read().split()
-    labels_ids = list(range(1, len(labels_str)+1))
-    return dict(zip(labels_str, labels_ids))
+    with open(labels_path, 'r') as file:
+        lines = file.read().splitlines()
+
+    class_dict = dict()
+    for line in lines:
+        if ':' in line:
+            label = line.split(':')[0]
+            id = line.split(':')[1]
+            class_dict[label] = int(id)
+    if len(class_dict) == 0:
+        labels_ids = list(range(0, len(lines)))
+        class_dict = dict(zip(lines, labels_ids))
+    return class_dict
 
 
 def get_annpaths(ann_dir_path: str = None,
@@ -141,6 +149,7 @@ def main():
                         help='Extract image number from the image filename')
     args = parser.parse_args()
     label2id = get_label2id(labels_path=args.labels)
+    print(label2id)
     ann_paths = get_annpaths(
         ann_dir_path=args.ann_dir,
         ann_ids_path=args.ann_ids,
