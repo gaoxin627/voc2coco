@@ -75,18 +75,21 @@ def get_coco_annotation_from_obj(obj, label2id):
         ymin = int(float(bndbox.findtext('ymin'))) - 1
         xmax = int(float(bndbox.findtext('xmax')))
         ymax = int(float(bndbox.findtext('ymax')))
-        assert xmax > xmin and ymax > ymin, f"Box size error !: (xmin, ymin, xmax, ymax): {xmin, ymin, xmax, ymax}"
-        o_width = xmax - xmin
-        o_height = ymax - ymin
-        ann = {
-            'area': o_width * o_height,
-            'iscrowd': 0,
-            'bbox': [xmin, ymin, o_width, o_height],
-            'category_id': category_id,
-            'ignore': 0,
-            'segmentation': []  # This script is not for segmentation
-        }
-        return ann
+        # assert xmax > xmin and ymax > ymin, f"Box size error !: (xmin, ymin, xmax, ymax): {xmin, ymin, xmax, ymax}"
+        if xmax > xmin and ymax > ymin:
+            o_width = xmax - xmin
+            o_height = ymax - ymin
+            ann = {
+                'area': o_width * o_height,
+                'iscrowd': 0,
+                'bbox': [xmin, ymin, o_width, o_height],
+                'category_id': category_id,
+                'ignore': 0,
+                'segmentation': []  # This script is not for segmentation
+            }
+            return ann
+        else:
+            return None
     else:
         return None
 
