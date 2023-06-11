@@ -97,7 +97,8 @@ def get_coco_annotation_from_obj(obj, label2id):
 def convert_xmls_to_cocojson(annotation_paths: List[str],
                              label2id: Dict[str, int],
                              output_jsonpath: str,
-                             extract_num_from_imgid: bool = True):
+                             extract_num_from_imgid: bool = True,
+                             labels = None):
     output_json_dict = {
         "images": [],
         "type": "instances",
@@ -123,9 +124,15 @@ def convert_xmls_to_cocojson(annotation_paths: List[str],
                 output_json_dict['annotations'].append(ann)
                 bnd_id = bnd_id + 1
 
-    for label, label_id in label2id.items():
-        category_info = {'supercategory': 'none', 'id': label_id, 'name': label}
-        output_json_dict['categories'].append(category_info)
+    if labels is not None:
+        for label, label_id in labels.items():
+            category_info = {'supercategory': 'none', 'id': label_id, 'name': label}
+            output_json_dict['categories'].append(category_info)
+    else:
+        for label, label_id in label2id.items():
+            category_info = {'supercategory': 'none', 'id': label_id, 'name': label}
+            output_json_dict['categories'].append(category_info)
+    print(output_json_dict['categories'])
 
     json_path = os.path.dirname(output_jsonpath)
     if not os.path.exists(json_path):
@@ -144,6 +151,8 @@ def main():
                         help='path to annotation files ids list. It is not need when use --ann_paths_list')
     parser.add_argument('--ann_paths_list', type=str, default=None,
                         help='path of annotation paths list. It is not need when use --ann_dir and --ann_ids')
+    parser.add_argument('--labels_dict', type=str, default=None,
+                        help='path to label list.')
     parser.add_argument('--labels', type=str, default=None,
                         help='path to label list.')
     parser.add_argument('--output', type=str, default='output.json', help='path to output json file')
@@ -151,8 +160,16 @@ def main():
     parser.add_argument('--extract_num_from_imgid', action="store_true",
                         help='Extract image number from the image filename')
     args = parser.parse_args()
-    label2id = get_label2id(labels_path=args.labels)
+    labels = None
+    if args.labels is not None:
+        labels = get_label2id(labels_path=args.labels)
+    if args.labels_dict is not None:
+        label2id = get_label2id(labels_path=args.labels_dict)
+    else:
+        label2id = get_label2id(labels_path=args.labels)
+        labels = None
     print(label2id)
+
     ann_paths = get_annpaths(
         ann_dir_path=args.ann_dir,
         ann_ids_path=args.ann_ids,
@@ -163,7 +180,8 @@ def main():
         annotation_paths=ann_paths,
         label2id=label2id,
         output_jsonpath=args.output,
-        extract_num_from_imgid=args.extract_num_from_imgid
+        extract_num_from_imgid=args.extract_num_from_imgid,
+        labels=labels
     )
 
 
